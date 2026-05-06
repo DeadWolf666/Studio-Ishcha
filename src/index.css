@@ -153,8 +153,8 @@ h2 {
 }
 
 .pre-entry .map-stage {
-  width: min(100%, 76rem);
-  min-height: min(86vw, 58rem);
+  width: min(100%, 70rem);
+  min-height: min(78vw, 50rem);
 }
 
 .floor-plan {
@@ -166,7 +166,7 @@ h2 {
 
 .pre-entry .floor-plan,
 .pre-entry .map-nodes {
-  width: min(100%, 72rem);
+  width: min(100%, 66rem);
 }
 
 .floor-plan path {

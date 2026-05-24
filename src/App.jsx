@@ -1,6 +1,12 @@
+import { Analytics } from "@vercel/analytics/react";
 import Map from "./components/Map";
 import "./index.css";
 
 export default function App() {
-  return <Map />;
+  return (
+    <>
+      <Map />
+      <Analytics />
+    </>
+  );
 }

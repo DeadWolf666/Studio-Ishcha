@@ -52,13 +52,25 @@ a {
 
 .map-shell {
   width: 100%;
+  max-width: min(100%, 108rem);
   min-height: 100vh;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   gap: clamp(1rem, 3vw, 2.5rem);
   padding: clamp(1rem, 3vw, 2.5rem);
   overflow: hidden;
+  align-items: start;
+  justify-items: center;
+  margin-inline: auto;
+}
+
+.map-shell.entered {
+  grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr);
+}
+
+.pre-entry.map-shell {
+  align-items: center;
 }
 
 .studio-panel,
@@ -66,20 +78,20 @@ a {
   border: 1px solid var(--soft-line);
   background: var(--panel);
   backdrop-filter: blur(18px);
+  width: 100%;
+  max-width: 38rem;
 }
 
 .studio-panel {
-  position: fixed;
-  left: clamp(1rem, 3vw, 2.5rem);
-  top: clamp(1rem, 3vw, 2.5rem);
-  z-index: 6;
-  width: min(22rem, calc(100vw - 2rem));
+  position: static;
   padding: clamp(0.9rem, 2vw, 1.25rem);
   opacity: 1;
   transform: translateX(0);
   transition:
     opacity 260ms ease,
     transform 260ms ease;
+  grid-column: 1;
+  grid-row: 1;
 }
 
 .pre-entry .studio-panel {
@@ -141,15 +153,21 @@ h2 {
 
 .map-stage {
   position: relative;
-  width: min(100%, 68rem);
+  width: min(100%, 60rem);
   min-height: min(78vw, 52rem);
-  grid-row: 1;
+  max-width: 100%;
+  max-height: calc(100vh - 7rem);
   grid-column: 1;
-  align-self: center;
+  grid-row: 1 / span 2;
+  align-self: start;
   justify-self: center;
   display: grid;
   place-items: center;
   overflow: hidden;
+}
+
+.map-shell.entered .map-stage {
+  grid-column: 2;
 }
 
 .pre-entry .map-stage {
@@ -336,12 +354,7 @@ h2 {
 }
 
 .destination-card {
-  width: min(100%, 38rem);
-  position: fixed;
-  left: clamp(1rem, 3vw, 2.5rem);
-  top: clamp(17rem, 36vh, 22rem);
-  bottom: clamp(1rem, 3vw, 2.5rem);
-  z-index: 6;
+  position: static;
   display: flex;
   flex-direction: column;
   padding: clamp(1.35rem, 2.8vw, 2.15rem);
@@ -351,6 +364,8 @@ h2 {
   transition:
     opacity 240ms ease,
     transform 240ms ease;
+  grid-column: 1;
+  grid-row: 2;
 }
 
 .pre-entry .destination-card {
@@ -390,20 +405,34 @@ h2 {
     padding: 1rem;
   }
 
+  .map-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
   .map-stage {
     min-height: 60vh;
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: stretch;
   }
 
   .studio-panel {
+    position: fixed;
     right: 1rem;
     width: auto;
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .destination-card {
+    position: fixed;
     top: auto;
     right: 1rem;
     width: auto;
     max-height: 42vh;
+    grid-column: auto;
+    grid-row: auto;
   }
 
 }

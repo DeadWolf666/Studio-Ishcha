@@ -246,7 +246,7 @@ export default function Map() {
 
       <motion.section
         animate={{
-          x: hasEntered && !isPhoneLayout ? "18vw" : 0,
+          x: 0,
           scale: hasEntered && !isPhoneLayout ? 0.92 : 1,
         }}
         className="map-stage"

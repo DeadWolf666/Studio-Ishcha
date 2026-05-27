@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import ProjectsMenu from "./ProjectsMenu";
 
 const MAP_WIDTH = 920;
 const MAP_HEIGHT = 680;
@@ -362,14 +363,20 @@ export default function Map() {
       </motion.section>
 
       <aside className="destination-card" aria-live="polite" aria-hidden={!hasEntered}>
-        <p>{activeDestination.level}</p>
-        <h2>{activeDestination.title}</h2>
-        <span>{activeDestination.body}</span>
-        <div className="destination-details">
-          {activeDestination.sections.map((section) => (
-            <span key={section}>{section}</span>
-          ))}
-        </div>
+        {activeId === "projects" ? (
+          <ProjectsMenu />
+        ) : (
+          <>
+            <p>{activeDestination.level}</p>
+            <h2>{activeDestination.title}</h2>
+            <span>{activeDestination.body}</span>
+            <div className="destination-details">
+              {activeDestination.sections.map((section) => (
+                <span key={section}>{section}</span>
+              ))}
+            </div>
+          </>
+        )}
       </aside>
     </main>
   );

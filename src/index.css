@@ -366,6 +366,11 @@ h2 {
     transform 240ms ease;
   grid-column: 1;
   grid-row: 2;
+  max-height: calc(100vh - 7rem);
+}
+
+.destination-card > * {
+  min-height: 0;
 }
 
 .pre-entry .destination-card {

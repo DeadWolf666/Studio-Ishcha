@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import ProjectsMenu from "./ProjectsMenu";
+import testerGraphic from "../assets/tester image.png";
 
-const MAP_WIDTH = 920;
-const MAP_HEIGHT = 680;
+const MAP_WIDTH = 1122;
+const MAP_HEIGHT = 1402;
+
+const ENTRY_POINT = { x: 440, y: 1180 };
 
 const destinations = [
   {
@@ -18,8 +21,8 @@ const destinations = [
       "Spatial campaigns that move between print, web, installation, and film.",
       "Interface studies for archives, studios, and editorial experiences.",
     ],
-    x: 626,
-    y: 150,
+    x: 720,
+    y: 300,
   },
   {
     id: "about",
@@ -33,8 +36,8 @@ const destinations = [
       "The studio is interested in quiet structure: maps, rituals, rooms, material references, and precise interaction.",
       "Projects are approached as environments rather than isolated outputs.",
     ],
-    x: 331,
-    y: 299,
+    x: 360,
+    y: 650,
   },
   {
     id: "journal",
@@ -45,11 +48,11 @@ const destinations = [
     body: "Sketches, references, field observations, and loose experiments collected along the route.",
     sections: [
       "Notes from site visits, image research, layout tests, and production experiments.",
-      "Short essays on visual culture, architecture, interfaces, and studio process.",
+      "Short essays on visual culture, architecture, and studio process.",
       "A place for unfinished fragments that may later become projects.",
     ],
-    x: 635,
-    y: 347,
+    x: 615,
+    y: 740,
   },
   {
     id: "contact",
@@ -63,37 +66,15 @@ const destinations = [
       "Share a short note about the project, timeline, context, and what kind of help you need.",
       "Email: hello@studioishcha.example",
     ],
-    x: 423,
-    y: 496,
+    x: 620,
+    y: 1010,
   },
 ];
 
-const floorLines = [
-  "M150 450 L410 320 L720 430 L465 585 Z",
-  "M240 300 L475 185 L760 285 L530 420 Z",
-  "M340 160 L545 62 L790 148 L585 265 Z",
-];
-
-const roomLines = [
-  "M293 378 L548 493",
-  "M408 320 L465 585",
-  "M360 242 L645 343",
-  "M475 185 L530 420",
-  "M454 106 L690 190",
-  "M545 62 L585 265",
-];
-
-const stairLines = [
-  "M465 585 L496 530 L448 508 L418 562",
-  "M496 530 L528 474 L479 453 L448 508",
-  "M530 420 L560 365 L515 346 L486 399",
-  "M560 365 L590 310 L548 292 L518 344",
-];
-
 const stairLandings = {
-  1: { x: 448, y: 508 },
-  2: { x: 530, y: 420 },
-  3: { x: 585, y: 265 },
+  1: { x: 330, y: 1040 },
+  2: { x: 330, y: 740 },
+  3: { x: 420, y: 320 },
 };
 
 const toPercent = ({ x, y }) => ({
@@ -103,6 +84,13 @@ const toPercent = ({ x, y }) => ({
 
 const getRoute = (from, to) => {
   if (from.id === to.id) return [from];
+
+  if (
+    (from.id === "outside" && to.id === "door") ||
+    (from.id === "door" && to.id === "contact")
+  ) {
+    return [from, to];
+  }
 
   const route = [from];
 
@@ -136,7 +124,7 @@ const getRouteDistance = (route) =>
   }, 0);
 
 const getTravelDuration = (route) =>
-  Math.min(4.8, Math.max(1.1, getRouteDistance(route) / 170));
+  Math.max(0.6, Math.min(4.8, getRouteDistance(route) / 170 - 0.5));
 
 const getRouteFromHash = () => {
   const hash = window.location.hash.replace("#", "");
@@ -156,19 +144,22 @@ export default function Map() {
   const [personPoint, setPersonPoint] = useState({
     id: "outside",
     floor: 1,
-    x: 260,
-    y: 610,
+    x: 220,
+    y: 1280,
   });
+  const [entryTarget, setEntryTarget] = useState(null);
   const arrivalTimer = useRef(null);
 
   const activeDestination =
     destinations.find((destination) => destination.id === activeId) ??
     destinations[0];
   const route = useMemo(() => {
-    if (!hasEntered) return [personPoint];
+    if (!hasEntered) {
+      return entryTarget ? getRoute(personPoint, entryTarget) : [personPoint];
+    }
 
     return getRoute(personPoint, activeDestination);
-  }, [hasEntered, personPoint, activeDestination]);
+  }, [hasEntered, personPoint, activeDestination, entryTarget]);
   const routePercents = route.map(toPercent);
   const travelDuration = getTravelDuration(route);
 
@@ -221,17 +212,31 @@ export default function Map() {
   };
 
   const handleEnter = () => {
-    const contact = destinations.find((destination) => destination.id === "contact");
-    const nextRoute = getRoute(personPoint, contact);
-    const nextDuration = getTravelDuration(nextRoute);
+    const entry = { id: "door", floor: 1, x: ENTRY_POINT.x, y: ENTRY_POINT.y };
+    const entryRoute = getRoute(personPoint, entry);
+    const entryDuration = getTravelDuration(entryRoute);
 
     window.clearTimeout(arrivalTimer.current);
-    setHasEntered(true);
+    setEntryTarget(entry);
     setActiveId("contact");
     window.history.pushState(null, "", "#contact");
+
     arrivalTimer.current = window.setTimeout(() => {
-      setPersonPoint(contact);
-    }, nextDuration * 1000);
+      const contactDestination =
+        destinations.find((destination) => destination.id === "contact") ??
+        entry;
+
+      setEntryTarget(null);
+      setPersonPoint(entry);
+      setHasEntered(true);
+
+      const contactRoute = getRoute(entry, contactDestination);
+      const contactDuration = getTravelDuration(contactRoute);
+
+      arrivalTimer.current = window.setTimeout(() => {
+        setPersonPoint(contactDestination);
+      }, contactDuration * 1000);
+    }, entryDuration * 1000);
   };
 
   return (
@@ -255,64 +260,33 @@ export default function Map() {
         aria-label="Multilevel site map"
         transition={{ type: "spring", stiffness: 90, damping: 18 }}
       >
-        <svg
-          className="floor-plan"
-          viewBox="0 0 920 680"
-          role="img"
-          aria-labelledby="map-title map-description"
-        >
-          <title id="map-title">Axonometric multilevel floor plan</title>
-          <desc id="map-description">
-            A minimal line drawing of three stacked building floors with rooms,
-            stairs, and clickable destination nodes.
-          </desc>
-
-          <g className="verticals" aria-hidden="true">
-            <path d="M150 450 L240 300 L340 160" />
-            <path d="M410 320 L475 185 L545 62" />
-            <path d="M720 430 L760 285 L790 148" />
-            <path d="M465 585 L530 420 L585 265" />
-          </g>
-
-          <g className="floors" aria-hidden="true">
-            {floorLines.map((line) => (
-              <path d={line} key={line} />
-            ))}
-          </g>
-
-          <g className="rooms" aria-hidden="true">
-            {roomLines.map((line) => (
-              <path d={line} key={line} />
-            ))}
-          </g>
-
-          <g className="stairs" aria-hidden="true">
-            {stairLines.map((line) => (
-              <path d={line} key={line} />
-            ))}
-            <path d="M430 552 L479 575" />
-            <path d="M444 526 L493 548" />
-            <path d="M459 500 L508 522" />
-            <path d="M500 388 L546 408" />
-            <path d="M514 362 L560 383" />
-            <path d="M529 336 L574 356" />
-          </g>
-
-          <polyline
-            className="travel-route"
-            aria-hidden={!hasEntered}
-            points={route.map((point) => `${point.x},${point.y}`).join(" ")}
+        <div className="floor-plan">
+          <img
+            src={testerGraphic}
+            alt="Axonometric three-story office plan"
+            aria-hidden="true"
           />
-        </svg>
+          <svg
+            className="floor-plan-overlay"
+            viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
+            role="img"
+            aria-labelledby="map-title map-description"
+          >
+            <title id="map-title">Axonometric multilevel floor plan</title>
+            <desc id="map-description">
+              A three-story office plan with a reception desk, staircase, desks,
+              conference room, and wall display.
+            </desc>
+          </svg>
 
-        <div className="map-nodes" aria-label="Page destinations">
+          <div className="map-nodes" aria-label="Page destinations">
           {!hasEntered ? (
             <button
               className="map-node enter-node"
               onClick={handleEnter}
               style={{
-                "--x": `${(destinations[3].x / MAP_WIDTH) * 100}%`,
-                "--y": `${(destinations[3].y / MAP_HEIGHT) * 100}%`,
+                "--x": `${(ENTRY_POINT.x / MAP_WIDTH) * 100}%`,
+                "--y": `${(ENTRY_POINT.y / MAP_HEIGHT) * 100}%`,
               }}
               type="button"
             >
@@ -359,6 +333,7 @@ export default function Map() {
             <span className="person-body" />
             <span className="person-shadow" />
           </motion.div>
+          </div>
         </div>
       </motion.section>
 

@@ -176,10 +176,27 @@ h2 {
 }
 
 .floor-plan {
+  position: relative;
   width: min(100%, 64rem);
-  height: auto;
+  max-height: calc(100vh - 7rem);
+  aspect-ratio: 1122 / 1402;
   overflow: visible;
   filter: drop-shadow(0 2rem 2.8rem rgba(23, 23, 23, 0.12));
+}
+
+.floor-plan img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.floor-plan-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 .pre-entry .floor-plan,
@@ -231,9 +248,9 @@ h2 {
 .map-nodes {
   position: absolute;
   inset: 0;
-  width: min(100%, 64rem);
-  aspect-ratio: 920 / 680;
-  margin: auto;
+  width: 100%;
+  height: 100%;
+  margin: 0;
   pointer-events: none;
 }
 
@@ -312,7 +329,7 @@ h2 {
   height: 0.48rem;
   border: 1.4px solid var(--ink);
   border-radius: 50%;
-  background: var(--bg);
+  background: #fff;
 }
 
 .person-body {
@@ -322,6 +339,7 @@ h2 {
   border: 1.4px solid var(--ink);
   border-top: 0;
   border-radius: 0 0 0.45rem 0.45rem;
+  background: #fff;
 }
 
 .person-body::before,
@@ -406,40 +424,39 @@ h2 {
 }
 
 @media (max-width: 900px) {
-  .map-shell {
+  .map-shell,
+  .map-shell.entered {
     padding: 1rem;
-  }
-
-  .map-shell {
+    align-items: stretch;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr) auto;
   }
 
   .map-stage {
-    min-height: 60vh;
+    width: 100%;
+    min-height: auto;
+    max-width: 100%;
+    max-height: none;
     grid-column: 1;
     grid-row: 2;
     justify-self: stretch;
+    overflow: visible;
   }
 
-  .studio-panel {
-    position: fixed;
-    right: 1rem;
-    width: auto;
+  .studio-panel,
+  .destination-card {
+    position: static;
+    right: auto;
+    width: 100%;
+    max-width: none;
     grid-column: auto;
-    grid-row: auto;
+    z-index: auto;
   }
 
   .destination-card {
-    position: fixed;
-    top: auto;
-    right: 1rem;
-    width: auto;
-    max-height: 42vh;
-    grid-column: auto;
-    grid-row: auto;
+    grid-row: 3;
+    max-height: none;
   }
-
 }
 
 @media (max-width: 760px) {
@@ -499,6 +516,8 @@ h2 {
     order: 2;
     width: 100%;
     min-height: auto;
+    max-width: 100%;
+    max-height: none;
     aspect-ratio: 920 / 680;
     margin: 0;
     overflow: visible;
@@ -507,6 +526,7 @@ h2 {
   .pre-entry .map-stage {
     width: 100%;
     min-height: auto;
+    max-width: 100%;
   }
 
   .floor-plan,
@@ -517,11 +537,16 @@ h2 {
     max-width: none;
   }
 
+  .floor-plan {
+    max-height: none;
+  }
+
   .destination-card {
     order: 3;
     bottom: auto;
     padding: 1rem;
     overflow: visible;
+    max-height: none;
   }
 
   .destination-details {

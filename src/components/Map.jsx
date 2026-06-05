@@ -71,6 +71,11 @@ const destinations = [
   },
 ];
 
+const railDestinations = [...destinations].sort((first, second) => {
+  if (first.floor !== second.floor) return first.floor - second.floor;
+  return first.level.localeCompare(second.level);
+});
+
 const stairLandings = {
   1: { x: 330, y: 1000 },
   2: { x: 315, y: 745 },
@@ -102,6 +107,11 @@ const getRoute = (from, to) => {
   const route = [from];
 
   if (from.floor === to.floor) {
+    if (getRouteDistance([from, to]) < 180) {
+      route.push(to);
+      return route;
+    }
+
     const corridor = floorCorridors[from.floor];
     route.push({ x: from.x, y: corridor.y });
     route.push({ x: to.x, y: corridor.y });
@@ -132,7 +142,23 @@ const getRouteDistance = (route) =>
   }, 0);
 
 const getTravelDuration = (route) =>
-  Math.max(0.6, Math.min(4.8, getRouteDistance(route) / 170 - 0.5));
+  route.length < 2 ? 0 : Math.max(0.14, Math.min(2.15, getRouteDistance(route) / 340));
+
+const getRouteTimes = (route) => {
+  if (route.length < 2) return undefined;
+
+  const totalDistance = getRouteDistance(route);
+  if (totalDistance === 0) return route.map(() => 0);
+
+  let travelled = 0;
+  return route.map((point, index) => {
+    if (index === 0) return 0;
+
+    const previous = route[index - 1];
+    travelled += Math.hypot(point.x - previous.x, point.y - previous.y);
+    return travelled / totalDistance;
+  });
+};
 
 const getRoutePoints = (route) =>
   route.map((point) => `${point.x},${point.y}`).join(" ");
@@ -173,6 +199,7 @@ export default function Map() {
   }, [hasEntered, personPoint, activeDestination, entryTarget]);
   const routePercents = route.map(toPercent);
   const routePoints = getRoutePoints(route);
+  const routeTimes = getRouteTimes(route);
   const travelDuration = getTravelDuration(route);
 
   useEffect(() => {
@@ -265,7 +292,7 @@ export default function Map() {
 
         {hasEntered && (
           <nav className="destination-rail" aria-label="Studio sections">
-            {destinations.map((destination) => (
+            {railDestinations.map((destination) => (
               <a
                 aria-current={destination.id === activeId ? "page" : undefined}
                 href={`#${destination.id}`}
@@ -361,11 +388,7 @@ export default function Map() {
             transition={{
               duration: travelDuration,
               ease: "easeInOut",
-              times: routePercents.map((_, index) =>
-                routePercents.length === 1
-                  ? 1
-                  : index / (routePercents.length - 1),
-              ),
+              times: routeTimes,
             }}
           >
             <svg viewBox="0 0 28 44" aria-hidden="true">

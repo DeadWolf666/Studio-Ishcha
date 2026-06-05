@@ -6,7 +6,7 @@ import testerGraphic from "../assets/tester image.png";
 const MAP_WIDTH = 1122;
 const MAP_HEIGHT = 1402;
 
-const ENTRY_POINT = { x: 440, y: 1180 };
+const ENTRY_POINT = { x: 420, y: 1210 };
 
 const destinations = [
   {
@@ -21,14 +21,14 @@ const destinations = [
       "Spatial campaigns that move between print, web, installation, and film.",
       "Interface studies for archives, studios, and editorial experiences.",
     ],
-    x: 720,
-    y: 300,
+    x: 700,
+    y: 315,
   },
   {
     id: "about",
     label: "About",
     floor: 2,
-    level: "Level 02",
+    level: "Level 02-A",
     title: "Studio profile",
     body: "A compact landing for the people, process, and point of view behind Studio Ishcha.",
     sections: [
@@ -36,14 +36,14 @@ const destinations = [
       "The studio is interested in quiet structure: maps, rituals, rooms, material references, and precise interaction.",
       "Projects are approached as environments rather than isolated outputs.",
     ],
-    x: 360,
-    y: 650,
+    x: 330,
+    y: 675,
   },
   {
     id: "journal",
     label: "Journal",
     floor: 2,
-    level: "Level 02",
+    level: "Level 02-B",
     title: "Process archive",
     body: "Sketches, references, field observations, and loose experiments collected along the route.",
     sections: [
@@ -51,8 +51,8 @@ const destinations = [
       "Short essays on visual culture, architecture, and studio process.",
       "A place for unfinished fragments that may later become projects.",
     ],
-    x: 615,
-    y: 740,
+    x: 625,
+    y: 720,
   },
   {
     id: "contact",
@@ -66,15 +66,21 @@ const destinations = [
       "Share a short note about the project, timeline, context, and what kind of help you need.",
       "Email: hello@studioishcha.example",
     ],
-    x: 620,
-    y: 1010,
+    x: 610,
+    y: 1015,
   },
 ];
 
 const stairLandings = {
-  1: { x: 330, y: 1040 },
-  2: { x: 330, y: 740 },
-  3: { x: 420, y: 320 },
+  1: { x: 330, y: 1000 },
+  2: { x: 315, y: 745 },
+  3: { x: 345, y: 455 },
+};
+
+const floorCorridors = {
+  1: { x: 470, y: 1040 },
+  2: { x: 450, y: 735 },
+  3: { x: 505, y: 455 },
 };
 
 const toPercent = ({ x, y }) => ({
@@ -85,24 +91,25 @@ const toPercent = ({ x, y }) => ({
 const getRoute = (from, to) => {
   if (from.id === to.id) return [from];
 
-  if (
-    (from.id === "outside" && to.id === "door") ||
-    (from.id === "door" && to.id === "contact")
-  ) {
-    return [from, to];
+  if (from.id === "outside" && to.id === "door") {
+    return [from, { x: 300, y: 1260 }, { x: 345, y: 1210 }, to];
+  }
+
+  if (from.id === "door" && to.id === "contact") {
+    return [from, { x: 455, y: 1140 }, floorCorridors[1], to];
   }
 
   const route = [from];
 
   if (from.floor === to.floor) {
-    route.push({
-      x: (from.x + to.x) / 2,
-      y: Math.min(from.y, to.y) - 24,
-    });
+    const corridor = floorCorridors[from.floor];
+    route.push({ x: from.x, y: corridor.y });
+    route.push({ x: to.x, y: corridor.y });
     route.push(to);
     return route;
   }
 
+  route.push({ x: from.x, y: floorCorridors[from.floor].y });
   route.push(stairLandings[from.floor]);
 
   const step = from.floor < to.floor ? 1 : -1;
@@ -111,6 +118,7 @@ const getRoute = (from, to) => {
     route.push(stairLandings[floor]);
   }
 
+  route.push({ x: to.x, y: floorCorridors[to.floor].y });
   route.push(to);
   return route;
 };
@@ -125,6 +133,9 @@ const getRouteDistance = (route) =>
 
 const getTravelDuration = (route) =>
   Math.max(0.6, Math.min(4.8, getRouteDistance(route) / 170 - 0.5));
+
+const getRoutePoints = (route) =>
+  route.map((point) => `${point.x},${point.y}`).join(" ");
 
 const getRouteFromHash = () => {
   const hash = window.location.hash.replace("#", "");
@@ -161,6 +172,7 @@ export default function Map() {
     return getRoute(personPoint, activeDestination);
   }, [hasEntered, personPoint, activeDestination, entryTarget]);
   const routePercents = route.map(toPercent);
+  const routePoints = getRoutePoints(route);
   const travelDuration = getTravelDuration(route);
 
   useEffect(() => {
@@ -242,12 +254,30 @@ export default function Map() {
   return (
     <main className={`map-shell ${hasEntered ? "entered" : "pre-entry"}`}>
       <section className="studio-panel" aria-hidden={!hasEntered}>
-        <p>Studio Ishcha</p>
-        <h1>A studio mapped in levels.</h1>
-        <span>
-          Spatial systems, campaigns, writing, and contact points arranged as a
-          quiet architectural diagram.
-        </span>
+        <div>
+          <p>Studio Ishcha</p>
+          <h1>A studio mapped in levels.</h1>
+          <span>
+            Spatial systems, campaigns, writing, and contact points arranged as a
+            quiet architectural diagram.
+          </span>
+        </div>
+
+        {hasEntered && (
+          <nav className="destination-rail" aria-label="Studio sections">
+            {destinations.map((destination) => (
+              <a
+                aria-current={destination.id === activeId ? "page" : undefined}
+                href={`#${destination.id}`}
+                key={destination.id}
+                onClick={(event) => handleDestinationClick(event, destination)}
+              >
+                <span>{destination.level}</span>
+                {destination.label}
+              </a>
+            ))}
+          </nav>
+        )}
       </section>
 
       <motion.section
@@ -277,6 +307,13 @@ export default function Map() {
               A three-story office plan with a reception desk, staircase, desks,
               conference room, and wall display.
             </desc>
+            <polyline className="travel-route route-shadow" points={routePoints} />
+            <motion.polyline
+              animate={{ points: routePoints }}
+              className="travel-route route-line"
+              initial={false}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+            />
           </svg>
 
           <div className="map-nodes" aria-label="Page destinations">
@@ -316,6 +353,8 @@ export default function Map() {
             animate={{
               left: routePercents.map((point) => point.left),
               top: routePercents.map((point) => point.top),
+              x: "-50%",
+              y: "-88%",
             }}
             className="map-person"
             initial={false}
@@ -329,9 +368,18 @@ export default function Map() {
               ),
             }}
           >
-            <span className="person-head" />
-            <span className="person-body" />
-            <span className="person-shadow" />
+            <svg viewBox="0 0 28 44" aria-hidden="true">
+              <ellipse className="person-shadow" cx="14" cy="39" rx="9" ry="3.6" />
+              <path
+                className="person-body"
+                d="M14 14.5c5.1 0 8.6 3.7 8.6 8.9v8.1c0 3-2 5.4-4.9 5.4H10.3c-2.9 0-4.9-2.4-4.9-5.4v-8.1c0-5.2 3.5-8.9 8.6-8.9Z"
+              />
+              <circle className="person-head" cx="14" cy="8.2" r="5.7" />
+              <path className="person-arm" d="M6.5 23.8 1.9 29" />
+              <path className="person-arm" d="M21.5 23.8 26.1 29" />
+              <path className="person-leg" d="M10.8 36.4 8.3 42" />
+              <path className="person-leg" d="M17.2 36.4 19.7 42" />
+            </svg>
           </motion.div>
           </div>
         </div>

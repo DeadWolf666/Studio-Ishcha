@@ -107,11 +107,6 @@ const getRoute = (from, to) => {
   const route = [from];
 
   if (from.floor === to.floor) {
-    if (getRouteDistance([from, to]) < 180) {
-      route.push(to);
-      return route;
-    }
-
     const corridor = floorCorridors[from.floor];
     route.push({ x: from.x, y: corridor.y });
     route.push({ x: to.x, y: corridor.y });
@@ -395,9 +390,12 @@ export default function Map() {
               <ellipse className="person-shadow" cx="14" cy="39" rx="9" ry="3.6" />
               <path
                 className="person-body"
+                fill="#fff"
+                fillOpacity="1"
+                stroke="#171717"
                 d="M14 14.5c5.1 0 8.6 3.7 8.6 8.9v8.1c0 3-2 5.4-4.9 5.4H10.3c-2.9 0-4.9-2.4-4.9-5.4v-8.1c0-5.2 3.5-8.9 8.6-8.9Z"
               />
-              <circle className="person-head" cx="14" cy="8.2" r="5.7" />
+              <circle className="person-head" fill="#fff" stroke="#171717" cx="14" cy="8.2" r="5.7" />
               <path className="person-arm" d="M6.5 23.8 1.9 29" />
               <path className="person-arm" d="M21.5 23.8 26.1 29" />
               <path className="person-leg" d="M10.8 36.4 8.3 42" />

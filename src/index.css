@@ -227,17 +227,21 @@ h2 {
   align-self: start;
   justify-self: center;
   display: grid;
-  place-items: center;
+  align-items: center;
+  justify-items: center;
   overflow: hidden;
 }
 
 .map-shell.entered .map-stage {
   grid-column: 2;
+  align-items: start;
+  padding-top: clamp(1.35rem, 2.8vw, 2.15rem);
 }
 
 .pre-entry .map-stage {
   width: min(100%, 48rem);
   min-height: min(72vw, 43rem);
+  align-self: center;
 }
 
 .floor-plan {
@@ -400,8 +404,10 @@ h2 {
   stroke-width: 2.25;
 }
 
+.map-person svg .person-body,
 .person-body {
   fill: #fff;
+  fill-opacity: 1;
   stroke: var(--ink);
   stroke-width: 2.25;
 }
